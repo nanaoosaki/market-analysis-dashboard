@@ -9,7 +9,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 
 # Import local version of InvestmentScenarioAnalyzer
-from investment_scenario_analysis import InvestmentScenarioAnalyzer
+from .investment_scenario_analysis import InvestmentScenarioAnalyzer
 
 class MarketDashboard:
     def __init__(self):
