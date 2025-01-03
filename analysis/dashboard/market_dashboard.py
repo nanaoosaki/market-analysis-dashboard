@@ -20,31 +20,57 @@ class MarketDashboard:
         
     def download_data(self):
         """Download ETF data and return as dictionary of DataFrames"""
-        # Set date range (30 years)
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=365*30)
-        
-        # ETF tickers
-        etfs = ['SPY', 'QQQ']
-        prices_data = {}
-        
-        for ticker in etfs:
-            try:
-                # Download data using yfinance
-                etf = yf.Ticker(ticker)
-                df = etf.history(start=start_date, end=end_date, interval="1d")
-                
-                if df.empty:
-                    st.error(f"No data received for {ticker}")
-                    continue
+        try:
+            # Set date range (30 years)
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=365*30)
+            
+            # ETF tickers
+            etfs = ['SPY', 'QQQ']
+            prices_data = {}
+            
+            st.write("Attempting to download data...")
+            st.write(f"Date range: {start_date} to {end_date}")
+            
+            for ticker in etfs:
+                try:
+                    st.write(f"\nProcessing {ticker}...")
                     
-                prices_data[ticker] = df
-                st.info(f"Downloaded data for {ticker}")
+                    # Download data using yfinance
+                    etf = yf.Ticker(ticker)
+                    df = etf.history(start=start_date, end=end_date, interval="1d")
+                    
+                    if df.empty:
+                        st.error(f"No data received for {ticker}")
+                        continue
+                        
+                    st.write(f"Downloaded data shape: {df.shape}")
+                    st.write(f"Columns: {df.columns.tolist()}")
+                    st.write("First few rows:")
+                    st.write(df.head())
+                    
+                    prices_data[ticker] = df
+                    st.success(f"Successfully downloaded data for {ticker}")
+                    
+                except Exception as e:
+                    st.error(f"Error downloading {ticker}: {str(e)}")
+                    continue
+            
+            if not prices_data:
+                st.error("Failed to download any data")
+                return {}
                 
-            except Exception as e:
-                st.error(f"Error downloading {ticker}: {str(e)}")
+            st.write("\nDownload summary:")
+            for ticker, df in prices_data.items():
+                st.write(f"{ticker}: {df.shape[0]} days of data")
                 
-        return prices_data
+            return prices_data
+            
+        except Exception as e:
+            st.error(f"Error in download_data: {str(e)}")
+            import traceback
+            st.error(f"Traceback: {traceback.format_exc()}")
+            return {}
     
     def plot_price_history(self):
         """Plot interactive price history"""
