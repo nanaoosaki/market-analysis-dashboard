@@ -9,6 +9,7 @@ import streamlit as st
 
 class InvestmentScenarioAnalyzer:
     def __init__(self):
+        """Initialize the analyzer with default parameters"""
         self.etfs = {'SPY': 'S&P 500', 'QQQ': 'Nasdaq-100'}
         self.initial_lump_sum = 50000
         self.monthly_income = 15000
@@ -16,41 +17,43 @@ class InvestmentScenarioAnalyzer:
         self.prices_df = None
         self.returns_df = None
         self.monthly_returns = None
+        self.prices = {}
+        self.returns = {}
+    
+    def __str__(self):
+        """Override string representation to prevent debug output"""
+        return "Investment Scenario Analyzer"
+        
+    def __repr__(self):
+        """Override repr to prevent debug output"""
+        return self.__str__()
         
     def load_data(self, prices_data):
         """Load and prepare data from provided prices DataFrame"""
+        if not isinstance(prices_data, dict) or not prices_data:
+            return
+        
         try:
-            self.prices = {}
-            self.returns = {}
-            
-            # Process data silently
-            if not isinstance(prices_data, dict) or not prices_data:
-                return
-            
             for etf in self.etfs:
-                try:
-                    if etf not in prices_data:
-                        continue
-                        
-                    df = prices_data[etf].copy()
-                    if not isinstance(df, pd.DataFrame):
-                        continue
-                    
-                    # Convert timezone-aware timestamps to timezone-naive
-                    df.index = df.index.tz_localize(None)
-                        
-                    # Use 'Close' or 'Adj Close' column
-                    if 'Close' in df.columns:
-                        self.prices[etf] = pd.Series(df['Close'].values, index=df.index)
-                    elif 'Adj Close' in df.columns:
-                        self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index)
-                    else:
-                        continue
-                        
-                    self.returns[etf] = self.prices[etf].pct_change()
-                    
-                except Exception:
+                if etf not in prices_data:
                     continue
+                    
+                df = prices_data[etf].copy()
+                if not isinstance(df, pd.DataFrame):
+                    continue
+                
+                # Convert timezone-aware timestamps to timezone-naive
+                df.index = df.index.tz_localize(None)
+                    
+                # Use 'Close' or 'Adj Close' column
+                if 'Close' in df.columns:
+                    self.prices[etf] = pd.Series(df['Close'].values, index=df.index)
+                elif 'Adj Close' in df.columns:
+                    self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index)
+                else:
+                    continue
+                    
+                self.returns[etf] = self.prices[etf].pct_change()
             
             if not self.prices:
                 return

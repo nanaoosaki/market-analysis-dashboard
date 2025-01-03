@@ -13,9 +13,23 @@ from investment_scenario_analysis import InvestmentScenarioAnalyzer
 
 class MarketDashboard:
     def __init__(self):
-        self.prices_data = self.download_data()  # Download data first
+        """Initialize the dashboard with data"""
+        self._prices_data = self.download_data()  # Download data first
         self.analyzer = InvestmentScenarioAnalyzer()
-        self.analyzer.load_data(self.prices_data)
+        self.analyzer.load_data(self._prices_data)
+    
+    def __str__(self):
+        """Override string representation to prevent debug output"""
+        return "Market Analysis Dashboard"
+        
+    def __repr__(self):
+        """Override repr to prevent debug output"""
+        return self.__str__()
+        
+    @property
+    def prices_data(self):
+        """Property to prevent direct access to prices_data"""
+        return self._prices_data
         
     def download_data(self):
         """Download ETF data and return as dictionary of DataFrames"""
@@ -224,51 +238,55 @@ def main():
     
     st.title("📊 Market Analysis Dashboard")
     
+    # Initialize dashboard silently
+    dashboard = None
     with st.spinner("Loading data..."):
         try:
-            # Initialize dashboard
             dashboard = MarketDashboard()
             
-            # Create tabs for different analyses
-            tab1, tab2, tab3, tab4 = st.tabs([
-                "Price History", 
-                "Rolling Correlation",
-                "Tech Momentum",
-                "Investment Scenarios"
-            ])
-            
-            with tab1:
-                st.plotly_chart(dashboard.plot_price_history(), use_container_width=True)
+            if dashboard and dashboard.analyzer and dashboard.analyzer.prices_df is not None:
+                # Create tabs for different analyses
+                tab1, tab2, tab3, tab4 = st.tabs([
+                    "Price History", 
+                    "Rolling Correlation",
+                    "Tech Momentum",
+                    "Investment Scenarios"
+                ])
                 
-            with tab2:
-                window = st.slider("Rolling Window (Days)", 30, 252, 60)
-                st.plotly_chart(dashboard.plot_rolling_correlation(window), use_container_width=True)
-                
-            with tab3:
-                st.plotly_chart(dashboard.plot_regime_analysis(), use_container_width=True)
-                
-            with tab4:
-                st.plotly_chart(dashboard.plot_investment_scenarios(), use_container_width=True)
-                
-                # Display performance metrics
-                metrics = dashboard.calculate_performance_metrics()
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.subheader("Lump Sum Investment ($50K)")
-                    st.metric("Total Return", f"{metrics['lump_sum']['total_return']:.2f}%")
-                    st.metric("Annualized Return", f"{metrics['lump_sum']['annual_return']:.2f}%")
-                    st.metric("Final Value", f"${metrics['lump_sum']['final_value']:,.2f}")
+                with tab1:
+                    st.plotly_chart(dashboard.plot_price_history(), use_container_width=True)
                     
-                with col2:
-                    st.subheader("Monthly Investment ($7.5K)")
-                    st.metric("Total Invested", f"${metrics['monthly']['total_invested']:,.2f}")
-                    st.metric("Total Return", f"{metrics['monthly']['total_return']:.2f}%")
-                    st.metric("Annualized Return", f"{metrics['monthly']['annual_return']:.2f}%")
-                    st.metric("Final Value", f"${metrics['monthly']['final_value']:,.2f}")
+                with tab2:
+                    window = st.slider("Rolling Window (Days)", 30, 252, 60)
+                    st.plotly_chart(dashboard.plot_rolling_correlation(window), use_container_width=True)
                     
-        except Exception as e:
+                with tab3:
+                    st.plotly_chart(dashboard.plot_regime_analysis(), use_container_width=True)
+                    
+                with tab4:
+                    st.plotly_chart(dashboard.plot_investment_scenarios(), use_container_width=True)
+                    
+                    # Display performance metrics
+                    metrics = dashboard.calculate_performance_metrics()
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.subheader("Lump Sum Investment ($50K)")
+                        st.metric("Total Return", f"{metrics['lump_sum']['total_return']:.2f}%")
+                        st.metric("Annualized Return", f"{metrics['lump_sum']['annual_return']:.2f}%")
+                        st.metric("Final Value", f"${metrics['lump_sum']['final_value']:,.2f}")
+                        
+                    with col2:
+                        st.subheader("Monthly Investment ($7.5K)")
+                        st.metric("Total Invested", f"${metrics['monthly']['total_invested']:,.2f}")
+                        st.metric("Total Return", f"{metrics['monthly']['total_return']:.2f}%")
+                        st.metric("Annualized Return", f"{metrics['monthly']['annual_return']:.2f}%")
+                        st.metric("Final Value", f"${metrics['monthly']['final_value']:,.2f}")
+            else:
+                st.error("Unable to load market data. Please try again later.")
+                    
+        except Exception:
             st.error("Error initializing dashboard. Please try again later.")
 
 if __name__ == "__main__":
