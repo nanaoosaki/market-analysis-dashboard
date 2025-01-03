@@ -8,9 +8,8 @@ import sys
 import yfinance as yf
 from datetime import datetime, timedelta
 
-# Add project root to path
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from analysis.notebooks.investment_scenario_analysis import InvestmentScenarioAnalyzer
+# Import local version of InvestmentScenarioAnalyzer
+from investment_scenario_analysis import InvestmentScenarioAnalyzer
 
 class MarketDashboard:
     def __init__(self):
