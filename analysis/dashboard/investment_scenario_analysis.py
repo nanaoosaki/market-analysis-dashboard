@@ -23,12 +23,10 @@ class InvestmentScenarioAnalyzer:
             self.prices = {}
             self.returns = {}
             
-            # Validate input data silently
+            # Process data silently
             if not isinstance(prices_data, dict) or not prices_data:
-                st.error("Failed to load data. Please try again.")
                 return
             
-            # Process each ETF silently
             for etf in self.etfs:
                 try:
                     if etf not in prices_data:
@@ -54,12 +52,10 @@ class InvestmentScenarioAnalyzer:
                 except Exception:
                     continue
             
-            # Check if we have any data to process
             if not self.prices:
-                st.error("No data available. Please try again.")
                 return
                 
-            # Align data on common dates silently
+            # Process data frames silently
             self.prices_df = pd.DataFrame(self.prices)
             self.returns_df = pd.DataFrame(self.returns)
             
@@ -67,15 +63,14 @@ class InvestmentScenarioAnalyzer:
             self.returns_df = self.returns_df.dropna()
             
             if self.prices_df.empty:
-                st.error("No valid data after processing. Please try again.")
                 return
                 
-            # Resample to monthly for income investment analysis
+            # Calculate monthly returns silently
             self.monthly_returns = self.returns_df.resample('ME').apply(
                 lambda x: (1 + x).prod() - 1)
                 
         except Exception:
-            st.error("Error processing data. Please try again.")
+            pass
     
     def analyze_tech_momentum(self, window=60):
         """Analyze tech momentum relative to broad market"""
