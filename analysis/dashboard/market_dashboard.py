@@ -251,77 +251,54 @@ def main():
     
     st.title("📊 Market Analysis Dashboard")
     
-    # Initialize dashboard
-    dashboard = MarketDashboard()
-    
-    # Sidebar
-    st.sidebar.title("Controls")
-    window = st.sidebar.slider(
-        "Rolling Window (Days)",
-        min_value=20,
-        max_value=252,
-        value=60,
-        step=1
-    )
-    
-    # Main content
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "Price History", 
-        "Correlation Analysis",
-        "Regime Analysis",
-        "Investment Scenarios"
-    ])
-    
-    with tab1:
-        st.plotly_chart(dashboard.plot_price_history(), use_container_width=True)
+    try:
+        # Initialize dashboard
+        dashboard = MarketDashboard()
         
-    with tab2:
-        st.plotly_chart(dashboard.plot_rolling_correlation(window), use_container_width=True)
+        # Create tabs for different analyses
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "Price History", 
+            "Rolling Correlation",
+            "Tech Momentum",
+            "Investment Scenarios"
+        ])
         
-    with tab3:
-        st.plotly_chart(dashboard.plot_regime_analysis(), use_container_width=True)
-        
-    with tab4:
-        # Performance metrics
-        metrics = dashboard.calculate_performance_metrics()
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("Lump Sum Investment ($50K)")
-            st.metric(
-                "Total Return",
-                f"{metrics['lump_sum']['total_return']:.2f}%"
-            )
-            st.metric(
-                "Annualized Return",
-                f"{metrics['lump_sum']['annual_return']:.2f}%"
-            )
-            st.metric(
-                "Final Value",
-                f"${metrics['lump_sum']['final_value']:,.2f}"
-            )
+        with tab1:
+            st.plotly_chart(dashboard.plot_price_history(), use_container_width=True)
             
-        with col2:
-            st.subheader("Monthly Investment ($7.5K)")
-            st.metric(
-                "Total Invested",
-                f"${metrics['monthly']['total_invested']:,.2f}"
-            )
-            st.metric(
-                "Total Return",
-                f"{metrics['monthly']['total_return']:.2f}%"
-            )
-            st.metric(
-                "Annualized Return",
-                f"{metrics['monthly']['annual_return']:.2f}%"
-            )
-            st.metric(
-                "Final Value",
-                f"${metrics['monthly']['final_value']:,.2f}"
-            )
-        
-        st.plotly_chart(dashboard.plot_investment_scenarios(), use_container_width=True)
+        with tab2:
+            window = st.slider("Rolling Window (Days)", 30, 252, 60)
+            st.plotly_chart(dashboard.plot_rolling_correlation(window), use_container_width=True)
+            
+        with tab3:
+            st.plotly_chart(dashboard.plot_regime_analysis(), use_container_width=True)
+            
+        with tab4:
+            st.plotly_chart(dashboard.plot_investment_scenarios(), use_container_width=True)
+            
+            # Display performance metrics
+            metrics = dashboard.calculate_performance_metrics()
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("Lump Sum Investment ($50K)")
+                st.metric("Total Return", f"{metrics['lump_sum']['total_return']:.2f}%")
+                st.metric("Annualized Return", f"{metrics['lump_sum']['annual_return']:.2f}%")
+                st.metric("Final Value", f"${metrics['lump_sum']['final_value']:,.2f}")
+                
+            with col2:
+                st.subheader("Monthly Investment ($7.5K)")
+                st.metric("Total Invested", f"${metrics['monthly']['total_invested']:,.2f}")
+                st.metric("Total Return", f"{metrics['monthly']['total_return']:.2f}%")
+                st.metric("Annualized Return", f"{metrics['monthly']['annual_return']:.2f}%")
+                st.metric("Final Value", f"${metrics['monthly']['final_value']:,.2f}")
+                
+    except Exception as e:
+        st.error("Error initializing dashboard")
+        st.error(str(e))
+        import traceback
+        st.error(f"Traceback: {traceback.format_exc()}")
 
 if __name__ == "__main__":
     main() 
