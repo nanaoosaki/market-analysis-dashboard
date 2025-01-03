@@ -34,26 +34,15 @@ class MarketDashboard:
                     etf = yf.Ticker(ticker)
                     df = etf.history(start=start_date, end=end_date, interval="1d")
                     
-                    if df.empty:
-                        st.error(f"No data received for {ticker}")
-                        continue
-                        
-                    prices_data[ticker] = df
+                    if not df.empty:
+                        prices_data[ticker] = df
                     
-                except Exception as e:
-                    st.error(f"Error downloading {ticker}: {str(e)}")
+                except Exception:
                     continue
             
-            if not prices_data:
-                st.error("Failed to download any data")
-                return {}
-                
-            return prices_data
+            return prices_data if prices_data else {}
             
-        except Exception as e:
-            st.error(f"Error in download_data: {str(e)}")
-            import traceback
-            st.error(f"Traceback: {traceback.format_exc()}")
+        except Exception:
             return {}
     
     def plot_price_history(self):

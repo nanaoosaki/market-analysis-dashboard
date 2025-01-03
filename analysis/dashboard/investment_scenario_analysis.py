@@ -23,25 +23,18 @@ class InvestmentScenarioAnalyzer:
             self.prices = {}
             self.returns = {}
             
-            # Validate input data
-            if not isinstance(prices_data, dict):
-                st.error(f"Expected prices_data to be a dictionary, got {type(prices_data)}")
-                return
-                
-            if not prices_data:
-                st.error("No data provided in prices_data")
+            # Validate input data silently
+            if not isinstance(prices_data, dict) or not prices_data:
                 return
             
             # Process each ETF
             for etf in self.etfs:
                 try:
                     if etf not in prices_data:
-                        st.error(f"No data found for {etf}")
                         continue
                         
-                    df = prices_data[etf].copy()  # Make a copy to avoid modifying original
+                    df = prices_data[etf].copy()
                     if not isinstance(df, pd.DataFrame):
-                        st.error(f"Data for {etf} is not a DataFrame")
                         continue
                     
                     # Convert timezone-aware timestamps to timezone-naive
@@ -53,18 +46,15 @@ class InvestmentScenarioAnalyzer:
                     elif 'Adj Close' in df.columns:
                         self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index)
                     else:
-                        st.error(f"No price data found for {etf}")
                         continue
                         
                     self.returns[etf] = self.prices[etf].pct_change()
                     
                 except Exception as e:
-                    st.error(f"Error processing {etf}: {str(e)}")
                     continue
             
             # Check if we have any data to process
             if not self.prices:
-                st.error("No price data was loaded successfully")
                 return
                 
             # Align data on common dates
@@ -75,7 +65,6 @@ class InvestmentScenarioAnalyzer:
             self.returns_df = self.returns_df.dropna()
             
             if self.prices_df.empty:
-                st.error("No valid price data after alignment")
                 return
                 
             # Resample to monthly for income investment analysis
@@ -83,9 +72,7 @@ class InvestmentScenarioAnalyzer:
                 lambda x: (1 + x).prod() - 1)
                 
         except Exception as e:
-            st.error(f"Error in load_data: {str(e)}")
-            import traceback
-            st.error(f"Traceback: {traceback.format_exc()}")
+            st.error("Error processing data. Please try again.")
     
     def analyze_tech_momentum(self, window=60):
         """Analyze tech momentum relative to broad market"""
