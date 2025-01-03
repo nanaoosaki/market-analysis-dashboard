@@ -5,6 +5,7 @@ from pathlib import Path
 import seaborn as sns
 import yfinance as yf
 from datetime import datetime, timedelta
+import streamlit as st
 
 class InvestmentScenarioAnalyzer:
     def __init__(self):
@@ -21,14 +22,34 @@ class InvestmentScenarioAnalyzer:
         self.prices = {}
         self.returns = {}
         
+        # Add debug information
+        st.write("Available columns in prices_data:")
+        for ticker, df in prices_data.items():
+            st.write(f"{ticker}: {df.columns.tolist()}")
+        
         for etf in self.etfs:
             if etf in prices_data:
-                self.prices[etf] = prices_data[etf]['Close']
-                self.returns[etf] = prices_data[etf]['Close'].pct_change()
+                # Use 'Close' or 'Adj Close' column
+                if 'Close' in prices_data[etf].columns:
+                    self.prices[etf] = prices_data[etf]['Close']
+                elif 'Adj Close' in prices_data[etf].columns:
+                    self.prices[etf] = prices_data[etf]['Adj Close']
+                else:
+                    st.error(f"No price data found for {etf}")
+                    continue
+                    
+                self.returns[etf] = self.prices[etf].pct_change()
+            else:
+                st.error(f"No data found for {etf}")
             
         # Align data on common dates
         self.prices_df = pd.DataFrame(self.prices).dropna()
         self.returns_df = pd.DataFrame(self.returns).dropna()
+        
+        # Add debug information
+        st.write("Data loaded successfully:")
+        st.write(f"Price data shape: {self.prices_df.shape}")
+        st.write(f"Date range: {self.prices_df.index.min()} to {self.prices_df.index.max()}")
         
         # Resample to monthly for income investment analysis
         self.monthly_returns = self.returns_df.resample('ME').apply(
