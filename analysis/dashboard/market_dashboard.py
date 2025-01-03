@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 from pathlib import Path
 import sys
+import yfinance as yf
+from datetime import datetime, timedelta
 
 # Add project root to path
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -12,9 +14,41 @@ from analysis.notebooks.investment_scenario_analysis import InvestmentScenarioAn
 
 class MarketDashboard:
     def __init__(self):
+        self.download_data()  # Download data first
         self.analyzer = InvestmentScenarioAnalyzer()
         self.analyzer.load_data()
         
+    def download_data(self):
+        """Download ETF data if it doesn't exist"""
+        # Set date range (30 years)
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=365*30)
+        
+        # ETF tickers
+        etfs = ['SPY', 'QQQ']
+        
+        for ticker in etfs:
+            try:
+                # Download data using yfinance
+                etf = yf.Ticker(ticker)
+                df = etf.history(start=start_date, end=end_date, interval="1d")
+                
+                if df.empty:
+                    st.error(f"No data received for {ticker}")
+                    continue
+                
+                # Create directories if they don't exist
+                data_dir = Path('data/raw') / ticker
+                price_dir = data_dir / 'price'
+                price_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Save price data
+                df[['Open', 'High', 'Low', 'Close', 'Adj Close']].to_csv(price_dir / 'daily_prices.csv')
+                st.info(f"Downloaded data for {ticker}")
+                
+            except Exception as e:
+                st.error(f"Error downloading {ticker}: {str(e)}")
+    
     def plot_price_history(self):
         """Plot interactive price history"""
         fig = go.Figure()

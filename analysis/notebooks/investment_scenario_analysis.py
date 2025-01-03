@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 import seaborn as sns
+import yfinance as yf
+from datetime import datetime, timedelta
 
 class InvestmentScenarioAnalyzer:
     def __init__(self):
@@ -17,13 +19,16 @@ class InvestmentScenarioAnalyzer:
         self.returns = {}
         
         for etf in self.etfs:
-            # Load data with proper date handling
-            df = pd.read_csv(f'data/raw/{etf}/price/daily_prices.csv')
-            # Extract date part and convert to datetime
-            df['Date'] = pd.to_datetime(df['Date'].str.split(' ').str[0])
-            df.set_index('Date', inplace=True)
-            self.prices[etf] = df['Close']
-            self.returns[etf] = df['Close'].pct_change()
+            try:
+                # Load data with proper date handling
+                df = pd.read_csv(f'data/raw/{etf}/price/daily_prices.csv')
+                df['Date'] = pd.to_datetime(df.index)  # Use index as date
+                df.set_index('Date', inplace=True)
+                self.prices[etf] = df['Close']
+                self.returns[etf] = df['Close'].pct_change()
+            except Exception as e:
+                print(f"Error loading {etf}: {str(e)}")
+                continue
             
         # Align data on common dates
         self.prices_df = pd.DataFrame(self.prices).dropna()
