@@ -5,7 +5,6 @@ from pathlib import Path
 import seaborn as sns
 import yfinance as yf
 from datetime import datetime, timedelta
-import streamlit as st
 
 class InvestmentScenarioAnalyzer:
     def __init__(self):
