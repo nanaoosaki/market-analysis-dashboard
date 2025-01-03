@@ -131,60 +131,83 @@ class MarketDashboard:
     
     def plot_regime_analysis(self):
         """Plot tech momentum regime analysis"""
-        # Get tech momentum and regimes
-        tech_momentum, regimes = self.analyzer.analyze_tech_momentum()
-        
-        # Create figure
-        fig = go.Figure()
-        
-        # Plot tech momentum
-        fig.add_trace(
-            go.Scatter(
-                x=tech_momentum.index,
-                y=tech_momentum,
-                name="Tech Momentum",
-                line=dict(color='gray'),
-                hovertemplate=
-                "Date: %{x}<br>" +
-                "Momentum: %{y:.2%}<br>"
+        try:
+            # Get tech momentum and regimes
+            tech_momentum, regimes = self.analyzer.analyze_tech_momentum()
+            
+            if tech_momentum is None or tech_momentum.empty:
+                st.error("No tech momentum data available")
+                return None
+                
+            # Print debug info
+            st.write("Tech Momentum Data Points:", len(tech_momentum))
+            st.write("First Date:", tech_momentum.index[0])
+            st.write("Last Date:", tech_momentum.index[-1])
+            
+            # Create figure
+            fig = go.Figure()
+            
+            # Plot tech momentum
+            fig.add_trace(
+                go.Scatter(
+                    x=tech_momentum.index,
+                    y=tech_momentum,
+                    name="Tech Momentum",
+                    line=dict(color='gray'),
+                    hovertemplate=
+                    "Date: %{x}<br>" +
+                    "Momentum: %{y:.2%}<br>"
+                )
             )
-        )
-        
-        # Plot regime highlights
-        for date in regimes.index:
-            if regimes.loc[date, 'strong']:
-                fig.add_vrect(
-                    x0=date,
-                    x1=date + pd.Timedelta(days=1),
-                    fillcolor="green",
-                    opacity=0.2,
-                    layer="below",
-                    line_width=0
-                )
-            elif regimes.loc[date, 'weak']:
-                fig.add_vrect(
-                    x0=date,
-                    x1=date + pd.Timedelta(days=1),
-                    fillcolor="red",
-                    opacity=0.2,
-                    layer="below",
-                    line_width=0
-                )
-        
-        # Update layout
-        fig.update_layout(
-            title="Tech Momentum Analysis (QQQ vs SPY)",
-            xaxis_title="Date",
-            yaxis_title="60-Day Momentum",
-            showlegend=True,
-            hovermode="x unified",
-            yaxis_tickformat=".1%"
-        )
-        
-        # Add horizontal lines for regime thresholds
-        fig.add_hline(y=0, line_dash="dash", line_color="black", opacity=0.5)
-        
-        return fig
+            
+            # Plot regime highlights
+            strong_count = 0
+            weak_count = 0
+            
+            for date in regimes.index:
+                if regimes.loc[date, 'strong']:
+                    strong_count += 1
+                    fig.add_vrect(
+                        x0=date,
+                        x1=date + pd.Timedelta(days=1),
+                        fillcolor="green",
+                        opacity=0.2,
+                        layer="below",
+                        line_width=0
+                    )
+                elif regimes.loc[date, 'weak']:
+                    weak_count += 1
+                    fig.add_vrect(
+                        x0=date,
+                        x1=date + pd.Timedelta(days=1),
+                        fillcolor="red",
+                        opacity=0.2,
+                        layer="below",
+                        line_width=0
+                    )
+            
+            # Print regime counts
+            st.write("Strong Tech Periods:", strong_count)
+            st.write("Weak Tech Periods:", weak_count)
+            
+            # Update layout
+            fig.update_layout(
+                title="Tech Momentum Analysis (QQQ vs SPY)",
+                xaxis_title="Date",
+                yaxis_title="60-Day Momentum",
+                showlegend=True,
+                hovermode="x unified",
+                yaxis_tickformat=".1%"
+            )
+            
+            # Add horizontal lines for regime thresholds
+            fig.add_hline(y=0, line_dash="dash", line_color="black", opacity=0.5)
+            
+            return fig
+            
+        except Exception as e:
+            st.error(f"Error in plot_regime_analysis: {str(e)}")
+            return None
     
     def plot_investment_scenarios(self):
         """Plot investment scenario analysis"""
@@ -227,21 +250,22 @@ class MarketDashboard:
         return fig
     
     def calculate_performance_metrics(self):
-        """Calculate and return performance metrics"""
+        """Calculate performance metrics for both investment strategies"""
+        # Get portfolio values
         lump_sum_value, _ = self.analyzer.simulate_lump_sum_investment()
         monthly_value, _ = self.analyzer.simulate_monthly_investment()
         
-        # Lump sum metrics
+        # Calculate lump sum metrics
         total_lump_sum_return = (lump_sum_value[-1] / self.analyzer.initial_lump_sum - 1) * 100
         annual_lump_sum_return = (
             (1 + total_lump_sum_return/100) ** (252/len(lump_sum_value)) - 1) * 100
-        
-        # Monthly investment metrics
+            
+        # Calculate monthly investment metrics
         total_invested = self.analyzer.monthly_investment * len(monthly_value)
         total_monthly_return = (monthly_value[-1] / total_invested - 1) * 100
         annual_monthly_return = (
             (1 + total_monthly_return/100) ** (12/len(monthly_value)) - 1) * 100
-        
+            
         return {
             'lump_sum': {
                 'total_return': total_lump_sum_return,
