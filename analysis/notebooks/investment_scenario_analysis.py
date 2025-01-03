@@ -58,10 +58,8 @@ class InvestmentScenarioAnalyzer:
                         st.error(f"Data for {etf} is not a DataFrame")
                         continue
                     
-                    # Ensure index is datetime
-                    if not isinstance(df.index, pd.DatetimeIndex):
-                        st.write(f"Converting index to datetime for {etf}")
-                        df.index = pd.to_datetime(df.index)
+                    # Convert timezone-aware timestamps to timezone-naive
+                    df.index = df.index.tz_localize(None)
                         
                     # Use 'Close' or 'Adj Close' column
                     if 'Close' in df.columns:
@@ -108,7 +106,7 @@ class InvestmentScenarioAnalyzer:
             
             # Resample to monthly for income investment analysis
             st.write("\nResampling to monthly data...")
-            self.monthly_returns = self.returns_df.resample('M').apply(
+            self.monthly_returns = self.returns_df.resample('ME').apply(
                 lambda x: (1 + x).prod() - 1)
                 
         except Exception as e:
