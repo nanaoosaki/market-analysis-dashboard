@@ -73,6 +73,29 @@ If needed, you can further use the `web_scraper.py` file to scrape the web page 
 - When scraping search results, use multiple selector patterns and proper headers to handle different layouts and avoid rate limits
 - Implement exponential backoff for retry mechanisms when dealing with rate-limited APIs
 
+## PowerShell Syntax
+- PowerShell does not use `&&` for command chaining like bash. Instead, use semicolon `;` to separate commands:
+  ```powershell
+  # Wrong:
+  git add file && git commit && git push
+
+  # Correct:
+  git add file; git commit; git push
+  ```
+
+## Environment
+- You have a python venv in ./py310
+- Include info useful for debugging in the program output
+- Read the file before you try to edit it
+- Use LLM to perform flexible text understanding tasks. First test on a few files. After success, make it parallel
+- On Windows systems, use backslashes for paths (e.g., 'py310\Scripts\python.exe') and activate virtual environment using '.\py310\Scripts\activate'
+- When scraping search results, use multiple selector patterns and proper headers to handle different layouts and avoid rate limits
+- Implement exponential backoff for retry mechanisms when dealing with rate-limited APIs
+
+## Data Storage
+- When deploying to cloud platforms like Streamlit Cloud, avoid relying on local file storage. Instead, keep data in memory or use cloud storage solutions.
+- For website image paths, always use the correct relative path (e.g., 'images/filename.png') and ensure the images directory exists
+
 # Scratchpad
 
 Task: Improve search engine implementation
