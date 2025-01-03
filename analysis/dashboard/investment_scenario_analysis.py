@@ -76,20 +76,28 @@ class InvestmentScenarioAnalyzer:
     
     def analyze_tech_momentum(self, window=60):
         """Analyze tech momentum relative to broad market"""
-        # Calculate relative strength of QQQ vs SPY
-        qqq_spy_ratio = self.prices_df['QQQ'] / self.prices_df['SPY']
-        tech_momentum = qqq_spy_ratio.pct_change(window, fill_method=None)
-        
-        # Define tech momentum regimes
-        tech_strong = tech_momentum > tech_momentum.quantile(0.7)
-        tech_weak = tech_momentum < tech_momentum.quantile(0.3)
-        
-        # Convert to DataFrame with same index
-        regimes = pd.DataFrame(index=tech_momentum.index)
-        regimes['strong'] = tech_strong
-        regimes['weak'] = tech_weak
-        
-        return tech_momentum, regimes
+        try:
+            if self.prices_df is None or self.prices_df.empty:
+                return None, None
+                
+            # Calculate relative strength of QQQ vs SPY
+            qqq_spy_ratio = self.prices_df['QQQ'] / self.prices_df['SPY']
+            tech_momentum = qqq_spy_ratio.pct_change(window, fill_method=None)
+            
+            # Define tech momentum regimes
+            tech_strong = tech_momentum > tech_momentum.quantile(0.7)
+            tech_weak = tech_momentum < tech_momentum.quantile(0.3)
+            
+            # Convert to DataFrame with same index
+            regimes = pd.DataFrame(index=tech_momentum.index)
+            regimes['strong'] = tech_strong
+            regimes['weak'] = tech_weak
+            
+            return tech_momentum, regimes
+            
+        except Exception as e:
+            print(f"Error in analyze_tech_momentum: {str(e)}")
+            return None, None
     
     def simulate_lump_sum_investment(self):
         """Simulate lump sum investment strategy"""
