@@ -44,8 +44,7 @@ class InvestmentScenarioAnalyzer:
                     st.write(f"Shape: {df.shape}")
                     st.write(f"Columns: {df.columns.tolist()}")
                     st.write(f"Index type: {type(df.index)}")
-                    st.write(f"First few rows:")
-                    st.write(df.head())
+                    st.write(f"Sample of index values: {df.index[:5].tolist()}")
             
             # Process each ETF
             for etf in self.etfs:
@@ -54,16 +53,21 @@ class InvestmentScenarioAnalyzer:
                         st.error(f"No data found for {etf}")
                         continue
                         
-                    df = prices_data[etf]
+                    df = prices_data[etf].copy()  # Make a copy to avoid modifying original
                     if not isinstance(df, pd.DataFrame):
                         st.error(f"Data for {etf} is not a DataFrame")
                         continue
+                    
+                    # Ensure index is datetime
+                    if not isinstance(df.index, pd.DatetimeIndex):
+                        st.write(f"Converting index to datetime for {etf}")
+                        df.index = pd.to_datetime(df.index)
                         
                     # Use 'Close' or 'Adj Close' column
                     if 'Close' in df.columns:
-                        self.prices[etf] = df['Close']
+                        self.prices[etf] = pd.Series(df['Close'].values, index=df.index)
                     elif 'Adj Close' in df.columns:
-                        self.prices[etf] = df['Adj Close']
+                        self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index)
                     else:
                         st.error(f"No price data found for {etf}. Available columns: {df.columns.tolist()}")
                         continue
@@ -73,6 +77,8 @@ class InvestmentScenarioAnalyzer:
                     
                 except Exception as e:
                     st.error(f"Error processing {etf}: {str(e)}")
+                    import traceback
+                    st.error(f"Traceback: {traceback.format_exc()}")
                     continue
             
             # Check if we have any data to process
@@ -81,8 +87,13 @@ class InvestmentScenarioAnalyzer:
                 return
                 
             # Align data on common dates
-            self.prices_df = pd.DataFrame(self.prices).dropna()
-            self.returns_df = pd.DataFrame(self.returns).dropna()
+            st.write("\nCreating DataFrames...")
+            self.prices_df = pd.DataFrame(self.prices)
+            self.returns_df = pd.DataFrame(self.returns)
+            
+            st.write("Dropping NA values...")
+            self.prices_df = self.prices_df.dropna()
+            self.returns_df = self.returns_df.dropna()
             
             if self.prices_df.empty:
                 st.error("No valid price data after alignment")
@@ -96,7 +107,8 @@ class InvestmentScenarioAnalyzer:
             st.write(self.prices_df.head())
             
             # Resample to monthly for income investment analysis
-            self.monthly_returns = self.returns_df.resample('ME').apply(
+            st.write("\nResampling to monthly data...")
+            self.monthly_returns = self.returns_df.resample('M').apply(
                 lambda x: (1 + x).prod() - 1)
                 
         except Exception as e:
