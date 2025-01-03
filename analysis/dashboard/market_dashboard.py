@@ -131,83 +131,122 @@ class MarketDashboard:
     
     def plot_regime_analysis(self):
         """Plot tech momentum regime analysis"""
-        # Get tech momentum and regimes
-        tech_momentum, regimes = self.analyzer.analyze_tech_momentum()
-        
-        print("\nDebug - Tech Momentum:")
-        print("tech_momentum type:", type(tech_momentum))
-        print("tech_momentum shape:", len(tech_momentum) if tech_momentum is not None else None)
-        print("regimes type:", type(regimes))
-        print("regimes shape:", regimes.shape if regimes is not None else None)
-        
-        if tech_momentum is None or tech_momentum.empty:
-            print("No tech momentum data available")
-            return None
+        try:
+            print("\nDebug - plot_regime_analysis start:")
             
-        # Create figure
-        fig = go.Figure()
-        
-        # Plot tech momentum
-        fig.add_trace(
-            go.Scatter(
-                x=tech_momentum.index,
-                y=tech_momentum,
-                name="Tech Momentum",
-                line=dict(color='gray'),
-                hovertemplate=
-                "Date: %{x}<br>" +
-                "Momentum: %{y:.2%}<br>"
+            # Get tech momentum and regimes
+            tech_momentum, regimes = self.analyzer.analyze_tech_momentum()
+            
+            print("\nDebug - After analyze_tech_momentum:")
+            print("tech_momentum type:", type(tech_momentum))
+            print("tech_momentum shape:", len(tech_momentum) if tech_momentum is not None else None)
+            print("tech_momentum head:", tech_momentum.head() if tech_momentum is not None else None)
+            print("tech_momentum NaN count:", tech_momentum.isna().sum() if tech_momentum is not None else None)
+            print("regimes type:", type(regimes))
+            print("regimes shape:", regimes.shape if regimes is not None else None)
+            
+            if tech_momentum is None or tech_momentum.empty:
+                print("No tech momentum data available")
+                st.error("No tech momentum data available")
+                return None
+                
+            # Drop NaN values
+            tech_momentum = tech_momentum.dropna()
+            if not tech_momentum.empty:
+                regimes = regimes.loc[tech_momentum.index]
+            
+            print("\nDebug - After dropping NaN:")
+            print("tech_momentum shape:", len(tech_momentum))
+            print("tech_momentum head:", tech_momentum.head())
+            print("regimes shape:", regimes.shape)
+                
+            # Create figure
+            fig = go.Figure()
+            
+            # Plot tech momentum
+            fig.add_trace(
+                go.Scatter(
+                    x=tech_momentum.index,
+                    y=tech_momentum,
+                    name="Tech Momentum",
+                    line=dict(color='gray'),
+                    hovertemplate=
+                    "Date: %{x}<br>" +
+                    "Momentum: %{y:.2%}<br>"
+                )
             )
-        )
-        
-        # Plot regime highlights
-        strong_added = False
-        weak_added = False
-        
-        for date in regimes.index:
-            if regimes.loc[date, 'strong']:
-                fig.add_vrect(
-                    x0=date,
-                    x1=date + pd.Timedelta(days=1),
-                    fillcolor="green",
-                    opacity=0.2,
-                    layer="below",
-                    line_width=0,
-                    name="Strong Tech" if not strong_added else None,
-                    showlegend=not strong_added
-                )
-                strong_added = True
-            elif regimes.loc[date, 'weak']:
-                fig.add_vrect(
-                    x0=date,
-                    x1=date + pd.Timedelta(days=1),
-                    fillcolor="red",
-                    opacity=0.2,
-                    layer="below",
-                    line_width=0,
-                    name="Weak Tech" if not weak_added else None,
-                    showlegend=not weak_added
-                )
-                weak_added = True
-        
-        # Update layout
-        fig.update_layout(
-            title="Tech Momentum Analysis (QQQ vs SPY)",
-            xaxis_title="Date",
-            yaxis_title="60-Day Momentum",
-            showlegend=True,
-            hovermode="x unified",
-            yaxis_tickformat=".1%"
-        )
-        
-        # Add horizontal lines for regime thresholds
-        fig.add_hline(y=0, line_dash="dash", line_color="black", opacity=0.5)
-        
-        print("\nDebug - Figure:")
-        print("Number of traces:", len(fig.data))
-        print("Layout:", fig.layout)
-        
-        return fig
+            
+            print("\nDebug - After adding main trace:")
+            print("Number of traces:", len(fig.data))
+            print("X range:", min(tech_momentum.index), "to", max(tech_momentum.index))
+            print("Y range:", f"{tech_momentum.min():.2%} to {tech_momentum.max():.2%}")
+            
+            # Plot regime highlights
+            strong_added = False
+            weak_added = False
+            strong_count = 0
+            weak_count = 0
+            
+            for date in regimes.index:
+                if regimes.loc[date, 'strong']:
+                    fig.add_vrect(
+                        x0=date,
+                        x1=date + pd.Timedelta(days=1),
+                        fillcolor="green",
+                        opacity=0.2,
+                        layer="below",
+                        line_width=0,
+                        name="Strong Tech" if not strong_added else None,
+                        showlegend=not strong_added
+                    )
+                    strong_added = True
+                    strong_count += 1
+                elif regimes.loc[date, 'weak']:
+                    fig.add_vrect(
+                        x0=date,
+                        x1=date + pd.Timedelta(days=1),
+                        fillcolor="red",
+                        opacity=0.2,
+                        layer="below",
+                        line_width=0,
+                        name="Weak Tech" if not weak_added else None,
+                        showlegend=not weak_added
+                    )
+                    weak_added = True
+                    weak_count += 1
+            
+            print("\nDebug - After adding regime highlights:")
+            print("Strong periods added:", strong_count)
+            print("Weak periods added:", weak_count)
+            print("Total number of traces:", len(fig.data))
+            
+            # Update layout
+            fig.update_layout(
+                title="Tech Momentum Analysis (QQQ vs SPY)",
+                xaxis_title="Date",
+                yaxis_title="60-Day Momentum",
+                showlegend=True,
+                hovermode="x unified",
+                yaxis_tickformat=".1%"
+            )
+            
+            # Add horizontal lines for regime thresholds
+            fig.add_hline(y=0, line_dash="dash", line_color="black", opacity=0.5)
+            
+            print("\nDebug - Final figure:")
+            print("Layout:", fig.layout)
+            print("Number of traces:", len(fig.data))
+            
+            # Display figure
+            st.plotly_chart(fig, use_container_width=True)
+            print("Debug - After st.plotly_chart")
+            
+            return fig
+            
+        except Exception as e:
+            print(f"Error in plot_regime_analysis: {str(e)}")
+            st.error(f"Error plotting tech momentum: {str(e)}")
+            return None
     
     def plot_investment_scenarios(self):
         """Plot investment scenario analysis"""

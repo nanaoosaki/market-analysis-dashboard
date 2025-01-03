@@ -77,9 +77,11 @@ class InvestmentScenarioAnalyzer:
     def analyze_tech_momentum(self, window=60):
         """Analyze tech momentum relative to broad market"""
         try:
-            print("\nDebug - analyze_tech_momentum:")
+            print("\nDebug - analyze_tech_momentum start:")
             print("prices_df type:", type(self.prices_df))
             print("prices_df shape:", self.prices_df.shape if self.prices_df is not None else None)
+            print("prices_df head:", self.prices_df.head() if self.prices_df is not None else None)
+            print("prices_df columns:", self.prices_df.columns if self.prices_df is not None else None)
             
             if self.prices_df is None or self.prices_df.empty:
                 print("No price data available")
@@ -89,19 +91,29 @@ class InvestmentScenarioAnalyzer:
             qqq_spy_ratio = self.prices_df['QQQ'] / self.prices_df['SPY']
             tech_momentum = qqq_spy_ratio.pct_change(window, fill_method=None)
             
+            print("\nDebug - After calculations:")
             print("qqq_spy_ratio shape:", qqq_spy_ratio.shape)
+            print("qqq_spy_ratio head:", qqq_spy_ratio.head())
             print("tech_momentum shape:", tech_momentum.shape)
+            print("tech_momentum head:", tech_momentum.head())
+            print("tech_momentum NaN count:", tech_momentum.isna().sum())
             
             # Define tech momentum regimes
             tech_strong = tech_momentum > tech_momentum.quantile(0.7)
             tech_weak = tech_momentum < tech_momentum.quantile(0.3)
+            
+            print("\nDebug - Regime thresholds:")
+            print("Strong threshold:", tech_momentum.quantile(0.7))
+            print("Weak threshold:", tech_momentum.quantile(0.3))
             
             # Convert to DataFrame with same index
             regimes = pd.DataFrame(index=tech_momentum.index)
             regimes['strong'] = tech_strong
             regimes['weak'] = tech_weak
             
+            print("\nDebug - Final regimes:")
             print("regimes shape:", regimes.shape)
+            print("regimes head:", regimes.head())
             print("strong periods:", tech_strong.sum())
             print("weak periods:", tech_weak.sum())
             
@@ -109,6 +121,9 @@ class InvestmentScenarioAnalyzer:
             
         except Exception as e:
             print(f"Error in analyze_tech_momentum: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
             return None, None
     
     def simulate_lump_sum_investment(self):
