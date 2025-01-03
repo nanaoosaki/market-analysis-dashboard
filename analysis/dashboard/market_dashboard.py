@@ -14,9 +14,11 @@ from investment_scenario_analysis import InvestmentScenarioAnalyzer
 class MarketDashboard:
     def __init__(self):
         """Initialize the dashboard with data"""
-        self._prices_data = self.download_data()  # Download data first
-        self.analyzer = InvestmentScenarioAnalyzer()
-        self.analyzer.load_data(self._prices_data)
+        with st.spinner("Downloading data..."):
+            self._prices_data = self.download_data()  # Download data first
+            self.analyzer = InvestmentScenarioAnalyzer()
+            if self._prices_data:
+                self.analyzer.load_data(self._prices_data)
     
     def __str__(self):
         """Override string representation to prevent debug output"""
@@ -29,7 +31,7 @@ class MarketDashboard:
     @property
     def prices_data(self):
         """Property to prevent direct access to prices_data"""
-        return self._prices_data
+        return None  # Return None to prevent debug output
         
     def download_data(self):
         """Download ETF data and return as dictionary of DataFrames"""
@@ -235,6 +237,15 @@ def main():
         page_icon="📈",
         layout="wide"
     )
+    
+    # Hide Streamlit menu and footer
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
     
     st.title("📊 Market Analysis Dashboard")
     

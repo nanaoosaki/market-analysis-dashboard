@@ -45,11 +45,11 @@ class InvestmentScenarioAnalyzer:
                 # Convert timezone-aware timestamps to timezone-naive
                 df.index = df.index.tz_localize(None)
                     
-                # Use 'Close' or 'Adj Close' column
+                # Use 'Close' or 'Adj Close' column silently
                 if 'Close' in df.columns:
-                    self.prices[etf] = pd.Series(df['Close'].values, index=df.index)
+                    self.prices[etf] = pd.Series(df['Close'].values, index=df.index, name=etf)
                 elif 'Adj Close' in df.columns:
-                    self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index)
+                    self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index, name=etf)
                 else:
                     continue
                     
