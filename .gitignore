@@ -45,4 +45,8 @@ data/processed/*
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Debug files
+debug_response.html
+er.* 
