@@ -222,7 +222,17 @@ def main():
     
     # Initialize and run analysis
     analyzer = InvestmentScenarioAnalyzer()
-    analyzer.load_data()
+    
+    # Download data
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=365*30)
+    prices_data = {}
+    
+    for ticker in ['SPY', 'QQQ']:
+        etf = yf.Ticker(ticker)
+        prices_data[ticker] = etf.history(start=start_date, end=end_date, interval="1d")
+    
+    analyzer.load_data(prices_data)
     
     # Simulate lump sum investment
     lump_sum_value, lump_sum_weights = analyzer.simulate_lump_sum_investment()
