@@ -130,9 +130,11 @@ class MarketDashboard:
         return fig
     
     def plot_regime_analysis(self):
-        """Plot tech momentum regimes"""
+        """Plot tech momentum regime analysis"""
+        # Get tech momentum and regimes
         tech_momentum, regimes = self.analyzer.analyze_tech_momentum()
         
+        # Create figure
         fig = go.Figure()
         
         # Plot tech momentum
@@ -141,39 +143,46 @@ class MarketDashboard:
                 x=tech_momentum.index,
                 y=tech_momentum,
                 name="Tech Momentum",
+                line=dict(color='gray'),
                 hovertemplate=
                 "Date: %{x}<br>" +
-                "Momentum: %{y:.3f}<br>"
+                "Momentum: %{y:.2%}<br>"
             )
         )
         
-        # Add regime highlights
-        for date in regimes[regimes['strong']].index:
-            fig.add_vrect(
-                x0=date,
-                x1=date + pd.Timedelta(days=1),
-                fillcolor="green",
-                opacity=0.2,
-                layer="below",
-                line_width=0
-            )
-            
-        for date in regimes[regimes['weak']].index:
-            fig.add_vrect(
-                x0=date,
-                x1=date + pd.Timedelta(days=1),
-                fillcolor="red",
-                opacity=0.2,
-                layer="below",
-                line_width=0
-            )
+        # Plot regime highlights
+        for date in regimes.index:
+            if regimes.loc[date, 'strong']:
+                fig.add_vrect(
+                    x0=date,
+                    x1=date + pd.Timedelta(days=1),
+                    fillcolor="green",
+                    opacity=0.2,
+                    layer="below",
+                    line_width=0
+                )
+            elif regimes.loc[date, 'weak']:
+                fig.add_vrect(
+                    x0=date,
+                    x1=date + pd.Timedelta(days=1),
+                    fillcolor="red",
+                    opacity=0.2,
+                    layer="below",
+                    line_width=0
+                )
         
+        # Update layout
         fig.update_layout(
-            title="Tech Momentum Regimes",
+            title="Tech Momentum Analysis (QQQ vs SPY)",
             xaxis_title="Date",
-            yaxis_title="Momentum",
-            hovermode="x unified"
+            yaxis_title="60-Day Momentum",
+            showlegend=True,
+            hovermode="x unified",
+            yaxis_tickformat=".1%"
         )
+        
+        # Add horizontal lines for regime thresholds
+        fig.add_hline(y=0, line_dash="dash", line_color="black", opacity=0.5)
         
         return fig
     
