@@ -77,12 +77,20 @@ class InvestmentScenarioAnalyzer:
     def analyze_tech_momentum(self, window=60):
         """Analyze tech momentum relative to broad market"""
         try:
+            print("\nDebug - analyze_tech_momentum:")
+            print("prices_df type:", type(self.prices_df))
+            print("prices_df shape:", self.prices_df.shape if self.prices_df is not None else None)
+            
             if self.prices_df is None or self.prices_df.empty:
+                print("No price data available")
                 return None, None
                 
             # Calculate relative strength of QQQ vs SPY
             qqq_spy_ratio = self.prices_df['QQQ'] / self.prices_df['SPY']
             tech_momentum = qqq_spy_ratio.pct_change(window, fill_method=None)
+            
+            print("qqq_spy_ratio shape:", qqq_spy_ratio.shape)
+            print("tech_momentum shape:", tech_momentum.shape)
             
             # Define tech momentum regimes
             tech_strong = tech_momentum > tech_momentum.quantile(0.7)
@@ -92,6 +100,10 @@ class InvestmentScenarioAnalyzer:
             regimes = pd.DataFrame(index=tech_momentum.index)
             regimes['strong'] = tech_strong
             regimes['weak'] = tech_weak
+            
+            print("regimes shape:", regimes.shape)
+            print("strong periods:", tech_strong.sum())
+            print("weak periods:", tech_weak.sum())
             
             return tech_momentum, regimes
             

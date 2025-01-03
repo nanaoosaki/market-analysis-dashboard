@@ -134,7 +134,14 @@ class MarketDashboard:
         # Get tech momentum and regimes
         tech_momentum, regimes = self.analyzer.analyze_tech_momentum()
         
+        print("\nDebug - Tech Momentum:")
+        print("tech_momentum type:", type(tech_momentum))
+        print("tech_momentum shape:", len(tech_momentum) if tech_momentum is not None else None)
+        print("regimes type:", type(regimes))
+        print("regimes shape:", regimes.shape if regimes is not None else None)
+        
         if tech_momentum is None or tech_momentum.empty:
+            print("No tech momentum data available")
             return None
             
         # Create figure
@@ -154,6 +161,9 @@ class MarketDashboard:
         )
         
         # Plot regime highlights
+        strong_added = False
+        weak_added = False
+        
         for date in regimes.index:
             if regimes.loc[date, 'strong']:
                 fig.add_vrect(
@@ -163,8 +173,10 @@ class MarketDashboard:
                     opacity=0.2,
                     layer="below",
                     line_width=0,
-                    name="Strong Tech"
+                    name="Strong Tech" if not strong_added else None,
+                    showlegend=not strong_added
                 )
+                strong_added = True
             elif regimes.loc[date, 'weak']:
                 fig.add_vrect(
                     x0=date,
@@ -173,8 +185,10 @@ class MarketDashboard:
                     opacity=0.2,
                     layer="below",
                     line_width=0,
-                    name="Weak Tech"
+                    name="Weak Tech" if not weak_added else None,
+                    showlegend=not weak_added
                 )
+                weak_added = True
         
         # Update layout
         fig.update_layout(
@@ -188,6 +202,10 @@ class MarketDashboard:
         
         # Add horizontal lines for regime thresholds
         fig.add_hline(y=0, line_dash="dash", line_color="black", opacity=0.5)
+        
+        print("\nDebug - Figure:")
+        print("Number of traces:", len(fig.data))
+        print("Layout:", fig.layout)
         
         return fig
     
