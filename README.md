@@ -11,14 +11,14 @@ An interactive dashboard for analyzing ETF performance and investment strategies
 
 ## Live Demo
 
-[Access the live dashboard here](https://share.streamlit.io/your-username/your-repo-name)
+[Access the live dashboard here](https://share.streamlit.io/nanaoosaki/market-analysis-dashboard)
 
 ## Local Development
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/nanaoosaki/market-analysis-dashboard.git
+cd market-analysis-dashboard
 ```
 
 2. Create a virtual environment:
