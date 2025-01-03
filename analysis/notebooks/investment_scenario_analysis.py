@@ -12,23 +12,19 @@ class InvestmentScenarioAnalyzer:
         self.initial_lump_sum = 50000
         self.monthly_income = 15000
         self.monthly_investment = 7500  # $7.5K from monthly income
+        self.prices_df = None
+        self.returns_df = None
+        self.monthly_returns = None
         
-    def load_data(self):
-        """Load and prepare data"""
+    def load_data(self, prices_data):
+        """Load and prepare data from provided prices DataFrame"""
         self.prices = {}
         self.returns = {}
         
         for etf in self.etfs:
-            try:
-                # Load data with proper date handling
-                df = pd.read_csv(f'data/raw/{etf}/price/daily_prices.csv')
-                df['Date'] = pd.to_datetime(df.index)  # Use index as date
-                df.set_index('Date', inplace=True)
-                self.prices[etf] = df['Close']
-                self.returns[etf] = df['Close'].pct_change()
-            except Exception as e:
-                print(f"Error loading {etf}: {str(e)}")
-                continue
+            if etf in prices_data:
+                self.prices[etf] = prices_data[etf]['Close']
+                self.returns[etf] = prices_data[etf]['Close'].pct_change()
             
         # Align data on common dates
         self.prices_df = pd.DataFrame(self.prices).dropna()
