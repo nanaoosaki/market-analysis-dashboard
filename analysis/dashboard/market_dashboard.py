@@ -28,13 +28,8 @@ class MarketDashboard:
             etfs = ['SPY', 'QQQ']
             prices_data = {}
             
-            st.write("Attempting to download data...")
-            st.write(f"Date range: {start_date} to {end_date}")
-            
             for ticker in etfs:
                 try:
-                    st.write(f"\nProcessing {ticker}...")
-                    
                     # Download data using yfinance
                     etf = yf.Ticker(ticker)
                     df = etf.history(start=start_date, end=end_date, interval="1d")
@@ -43,13 +38,7 @@ class MarketDashboard:
                         st.error(f"No data received for {ticker}")
                         continue
                         
-                    st.write(f"Downloaded data shape: {df.shape}")
-                    st.write(f"Columns: {df.columns.tolist()}")
-                    st.write("First few rows:")
-                    st.write(df.head())
-                    
                     prices_data[ticker] = df
-                    st.success(f"Successfully downloaded data for {ticker}")
                     
                 except Exception as e:
                     st.error(f"Error downloading {ticker}: {str(e)}")
@@ -58,10 +47,6 @@ class MarketDashboard:
             if not prices_data:
                 st.error("Failed to download any data")
                 return {}
-                
-            st.write("\nDownload summary:")
-            for ticker, df in prices_data.items():
-                st.write(f"{ticker}: {df.shape[0]} days of data")
                 
             return prices_data
             

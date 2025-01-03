@@ -20,10 +20,6 @@ class InvestmentScenarioAnalyzer:
     def load_data(self, prices_data):
         """Load and prepare data from provided prices DataFrame"""
         try:
-            # Debug: Print the type and structure of input data
-            st.write("Type of prices_data:", type(prices_data))
-            st.write("Keys in prices_data:", list(prices_data.keys()) if isinstance(prices_data, dict) else "Not a dictionary")
-            
             self.prices = {}
             self.returns = {}
             
@@ -35,16 +31,6 @@ class InvestmentScenarioAnalyzer:
             if not prices_data:
                 st.error("No data provided in prices_data")
                 return
-            
-            # Add debug information for each ticker
-            for ticker, df in prices_data.items():
-                st.write(f"\nDebug info for {ticker}:")
-                st.write(f"Type: {type(df)}")
-                if isinstance(df, pd.DataFrame):
-                    st.write(f"Shape: {df.shape}")
-                    st.write(f"Columns: {df.columns.tolist()}")
-                    st.write(f"Index type: {type(df.index)}")
-                    st.write(f"Sample of index values: {df.index[:5].tolist()}")
             
             # Process each ETF
             for etf in self.etfs:
@@ -67,16 +53,13 @@ class InvestmentScenarioAnalyzer:
                     elif 'Adj Close' in df.columns:
                         self.prices[etf] = pd.Series(df['Adj Close'].values, index=df.index)
                     else:
-                        st.error(f"No price data found for {etf}. Available columns: {df.columns.tolist()}")
+                        st.error(f"No price data found for {etf}")
                         continue
                         
                     self.returns[etf] = self.prices[etf].pct_change()
-                    st.success(f"Successfully processed {etf}")
                     
                 except Exception as e:
                     st.error(f"Error processing {etf}: {str(e)}")
-                    import traceback
-                    st.error(f"Traceback: {traceback.format_exc()}")
                     continue
             
             # Check if we have any data to process
@@ -85,11 +68,9 @@ class InvestmentScenarioAnalyzer:
                 return
                 
             # Align data on common dates
-            st.write("\nCreating DataFrames...")
             self.prices_df = pd.DataFrame(self.prices)
             self.returns_df = pd.DataFrame(self.returns)
             
-            st.write("Dropping NA values...")
             self.prices_df = self.prices_df.dropna()
             self.returns_df = self.returns_df.dropna()
             
@@ -97,15 +78,7 @@ class InvestmentScenarioAnalyzer:
                 st.error("No valid price data after alignment")
                 return
                 
-            # Add debug information about final processed data
-            st.write("\nFinal processed data:")
-            st.write(f"Price data shape: {self.prices_df.shape}")
-            st.write(f"Date range: {self.prices_df.index.min()} to {self.prices_df.index.max()}")
-            st.write("First few rows of processed data:")
-            st.write(self.prices_df.head())
-            
             # Resample to monthly for income investment analysis
-            st.write("\nResampling to monthly data...")
             self.monthly_returns = self.returns_df.resample('ME').apply(
                 lambda x: (1 + x).prod() - 1)
                 
